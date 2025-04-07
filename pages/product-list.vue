@@ -3,7 +3,6 @@ import { h } from 'vue'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 import type { TableColumn } from '@nuxt/ui'
 
-// Визначення типу для продукту з API
 interface Product {
   id: number
   title: string
@@ -19,13 +18,11 @@ useHead({
   title: "Список продуктів"
 })
 
-// Завантаження даних з API
 const { data, status } = await useFetch<Product[]>('https://dummyjson.com/products', {
   key: 'products-list',
   transform: (response: any) => response.products || []
 })
 
-// Визначення колонок із типом Product
 const columns: TableColumn<Product>[] = [
   {
     accessorKey: 'title',
@@ -84,7 +81,6 @@ const pagination = ref({
 const filter = ref('')
 const table = useTemplateRef('table')
 
-// Обробка null для data
 const tableData = computed(() => data.value || [])
 </script>
 
@@ -92,7 +88,6 @@ const tableData = computed(() => data.value || [])
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Список продуктів</h1>
 
-    <!-- Поле для пошуку -->
     <UInput
         v-model="filter"
         placeholder="Пошук за назвою..."
@@ -100,7 +95,6 @@ const tableData = computed(() => data.value || [])
         @update:model-value="table?.tableApi?.getColumn('title')?.setFilterValue($event)"
     />
 
-    <!-- Таблиця -->
     <UTable
         ref="table"
         :data="tableData"
@@ -111,7 +105,6 @@ const tableData = computed(() => data.value || [])
         class="flex-1"
     />
 
-    <!-- Пагінація -->
     <div class="flex justify-center mt-4">
       <UPagination
           :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
