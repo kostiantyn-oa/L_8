@@ -1,28 +1,124 @@
-<script setup>
+<script setup lang="ts">
+import { h } from 'vue'
+import { getPaginationRowModel } from '@tanstack/vue-table'
+import type { TableColumn } from '@nuxt/ui'
+
+// Визначення типу для продукту з API
+interface Product {
+  id: number
+  title: string
+  description: string
+  price: number
+  rating: number
+  brand: string
+  category: string
+  thumbnail: string
+}
+
 useHead({
   title: "Список продуктів"
-});
+})
 
-const products = [
-  { id: 1, name: 'Яблуко', quantity: '1 кг' },
-  { id: 2, name: 'Молоко', quantity: '1 літр' },
-  { id: 3, name: 'Сир', quantity: '200 г' },
-  { id: 4, name: 'Хліб', quantity: '1 шт' },
-  { id: 5, name: 'Яйця', quantity: '10 шт' }
-];
+// Завантаження даних з API
+const { data, status } = await useFetch<Product[]>('https://dummyjson.com/products', {
+  key: 'products-list',
+  transform: (response: any) => response.products || []
+})
+
+// Визначення колонок із типом Product
+const columns: TableColumn<Product>[] = [
+  {
+    accessorKey: 'title',
+    header: ({ column }) => h('button', {
+      class: 'text-left font-bold',
+      onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+    }, 'Назва'),
+    cell: ({ row }) => row.getValue('title')
+  },
+  {
+    accessorKey: 'description',
+    header: 'Опис',
+    cell: ({ row }) => row.getValue('description')
+  },
+  {
+    accessorKey: 'price',
+    header: 'Ціна',
+    cell: ({ row }) => `$${row.getValue('price')}`
+  },
+  {
+    accessorKey: 'rating',
+    header: 'Оцінка',
+    cell: ({ row }) => {
+      const rating = row.getValue('rating') as number
+      return h('span', {
+        class: rating < 4.5 ? 'text-red-500' : 'text-green-500'
+      }, rating.toString())
+    }
+  },
+  {
+    accessorKey: 'brand',
+    header: 'Бренд',
+    cell: ({ row }) => row.getValue('brand')
+  },
+  {
+    accessorKey: 'category',
+    header: 'Категорія',
+    cell: ({ row }) => row.getValue('category')
+  },
+  {
+    accessorKey: 'thumbnail',
+    header: 'Фото',
+    cell: ({ row }) => h('img', {
+      src: row.getValue('thumbnail'),
+      alt: row.getValue('title'),
+      class: 'w-[100px] h-[100px] object-cover'
+    })
+  }
+]
+
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 5
+})
+
+const filter = ref('')
+const table = useTemplateRef('table')
+
+// Обробка null для data
+const tableData = computed(() => data.value || [])
 </script>
 
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Список продуктів</h1>
-    <ul class="space-y-2">
-      <li
-          v-for="product in products"
-          :key="product.id"
-          class="p-4 border rounded-lg shadow-sm bg-white"
-      >
-        <strong>{{ product.name }}</strong> — {{ product.quantity }}
-      </li>
-    </ul>
+
+    <!-- Поле для пошуку -->
+    <UInput
+        v-model="filter"
+        placeholder="Пошук за назвою..."
+        class="mb-4 max-w-sm"
+        @update:model-value="table?.tableApi?.getColumn('title')?.setFilterValue($event)"
+    />
+
+    <!-- Таблиця -->
+    <UTable
+        ref="table"
+        :data="tableData"
+        :columns="columns"
+        :loading="status === 'pending'"
+        v-model:pagination="pagination"
+        :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
+        class="flex-1"
+    />
+
+    <!-- Пагінація -->
+    <div class="flex justify-center mt-4">
+      <UPagination
+          :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+          :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+          :total="table?.tableApi?.getFilteredRowModel().rows.length"
+          @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)"
+      />
+    </div>
   </div>
 </template>
