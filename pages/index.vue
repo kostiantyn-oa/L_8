@@ -7,7 +7,6 @@ useHead({
   title: "Головна сторінка"
 })
 
-// Статичні дані для демонстрації 8-го завдання
 const products = ref([
   { id: 1, name: 'Яблуко', quantity: '1 кг' },
   { id: 2, name: 'Молоко', quantity: '1 літр' },
@@ -16,7 +15,6 @@ const products = ref([
   { id: 5, name: 'Яйця', quantity: '10 шт' }
 ])
 
-// Визначення колонок для таблиці
 const columns: TableColumn<any>[] = [
   {
     accessorKey: 'id',
@@ -38,13 +36,11 @@ const columns: TableColumn<any>[] = [
   }
 ]
 
-// Налаштування пагінації
 const pagination = ref({
   pageIndex: 0,
   pageSize: 3
 })
 
-// Фільтр для пошуку
 const filter = ref('')
 const table = useTemplateRef('table')
 </script>
@@ -54,10 +50,8 @@ const table = useTemplateRef('table')
     <h1 class="text-2xl font-bold mb-4">Головна сторінка</h1>
     <p class="mb-4">Перейдіть до <a href="/product-list" class="text-blue-500 underline">Списку продуктів</a> (тут завдання 9 з API)</p>
 
-    <!-- Демонстрація 8-го завдання -->
     <h2 class="text-xl font-semibold mb-2">Приклад таблиці продуктів (це завдання 8)</h2>
 
-    <!-- Поле для пошуку -->
     <UInput
         v-model="filter"
         placeholder="Пошук за назвою..."
@@ -65,7 +59,6 @@ const table = useTemplateRef('table')
         @update:model-value="table?.tableApi?.getColumn('name')?.setFilterValue($event)"
     />
 
-    <!-- Таблиця -->
     <UTable
         ref="table"
         :data="products"
@@ -75,7 +68,6 @@ const table = useTemplateRef('table')
         class="flex-1 mb-4"
     />
 
-    <!-- Пагінація -->
     <div class="flex justify-center">
       <UPagination
           :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
